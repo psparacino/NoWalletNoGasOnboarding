@@ -1,0 +1,84 @@
+import { useState, useEffect } from "react";
+
+import { ethers } from 'ethers';
+
+
+
+//import Level1Completion from '../artifacts/contracts/Level1Completion.sol/Level1Completion.json';
+
+//import SingleRecipientPaymaster from '../artifacts/contracts/SingleRecipientPaymaster.sol/SingleRecipientPaymaster.json';
+
+import CaptureTheFlag from '../build/CaptureTheFlag.json';
+
+
+
+
+
+
+const useContractObjectRepo = () => {
+    
+    
+    
+
+    //const [RootContract, setRootContract] = useState('');
+    
+    //const [Level1CompletionContract, setLevel1CompletionContract] = useState('');
+
+    //const [SingleRecipientPaymasterContract, setSingleRecipientPaymasterContract] = useState('');
+
+    const [CaptureTheFlagContract, setCaptureTheFlagContract] = useState('');
+    
+    
+
+    //const [signer, setSigner] = useState('');
+
+    //const [provider, setProvider] = useState('');
+
+    useEffect(()=> {
+        if (window.ethereum) {
+            contractObjects();
+          } else {
+            alert("please install Metamask")
+          }
+        
+        
+          async function contractObjects() {
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner(0);
+
+            const CaptureTheFlagAddress = "0x0E696947A06550DEf604e82C26fd9E493e576337";
+            const CaptureTheFlagObject = await new ethers.Contract(CaptureTheFlagAddress, CaptureTheFlag.abi, signer);
+            setCaptureTheFlagContract(CaptureTheFlagObject);
+
+            /*
+
+            //NFT Contract
+
+            const level1CompletionAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+            const Level1CompletionObject = await new ethers.Contract(level1CompletionAddress, Level1Completion.abi, signer);
+            setLevel1CompletionContract(Level1CompletionObject);
+
+
+                     
+            //User Interaction Contract + Root Contract
+
+            // kovan main: 0x83A71D391677f78BbED848b414635EdCE6e6E9b4
+
+            // rinkeby main: 0xEf543579E6dc9c7C71C3dF6405C119799f25C676
+
+            const singleRecipientPaymasterAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+            const CaptureTheFlagObject = await new ethers.Contract(singleRecipientPaymasterAddress, SingleRecipientPaymaster.abi, signer);
+            setSingleRecipientPaymasterContract(CaptureTheFlagObject);
+            */
+            
+
+        }
+
+    },[]) 
+    return {CaptureTheFlagContract};
+}
+
+export default useContractObjectRepo;
+
+

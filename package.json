@@ -3,19 +3,31 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@opengsn/cli": "^2.2.6",
+    "@opengsn/contracts": "^2.2.6",
+    "@opengsn/provider": "^2.2.6",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-scripts": "5.0.0",
-    "web-vitals": "^2.1.4"
+    "browserify": "^17.0.0",
+    "dotenv": "^16.0.0",
+    "ethers": "^5.0.26",
+    "ganache-cli": "^6.12.2",
+    "react": "^16.0.10",
+    "react-dom": "^16.0.10",
+    "react-scripts": "4.0.3",
+    "run-with-testrpc": "^0.3.1",
+    "serve": "^13.0.2",
+    "web-vitals": "^2.1.4",
+    "web3": "^1.7.0"
   },
   "scripts": {
+    "yarnstart": "yarn react-start",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "ganache": "yarn run ganache-cli -d --chainId 1337"
   },
   "eslintConfig": {
     "extends": [
