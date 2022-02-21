@@ -5,6 +5,7 @@ import MetaMaskButton from './components/MetaMaskButton.js';
 import { ethers } from 'ethers';
 import { useState, useEffect } from "react";
 import CaptureTheFlag from './build/CaptureTheFlag.json';
+import Level1Completion from './build/Level1Completion.json';
 
 import { RelayProvider } from '@opengsn/provider/dist/RelayProvider';
 
@@ -68,7 +69,7 @@ function App() {
     },[])
 
 
-  async function award() {
+  async function ctf() {
     //create new instance of contract
     const CaptureTheFlagAddress = "0x0E696947A06550DEf604e82C26fd9E493e576337";
     const CaptureTheFlagContract = await new ethers.Contract(CaptureTheFlagAddress, CaptureTheFlag.abi, relayProvider.getSigner());
@@ -78,7 +79,7 @@ function App() {
  
     CaptureTheFlagContractEphemeral.captureTheFlag()
       .then((result) => {
-        console.log(result, "award result") 
+        console.log(result, "ctf result") 
         setProofOfTxn(result)
       })
       .catch((error)=> console.log(error))
@@ -86,15 +87,37 @@ function App() {
   }
 
 
+  async function awardPOAP() {
+    //create new instance of contract
+    const Level1CompletionAddress = "0x5f8e26fAcC23FA4cbd87b8d9Dbbd33D5047abDE1";
+    const Level1CompletionContract = await new ethers.Contract(Level1CompletionAddress, Level1Completion.abi, relayProvider.getSigner());
+
+    //let onetimeAccount connect to contract
+    const Level1CompletionContractEphemeral = Level1CompletionContract.connect(relayProvider.getSigner(oneTimeAccount.address))
+    
+    Level1CompletionContractEphemeral.awardCertificate('0xe4632110872c2213b6E0C5B7b6a88583124a15a0', 'www.google.com')
+      .then((result) => {
+        console.log(result, "award result") 
+        {/*setProofOfTxn(result)*/}
+      })
+      .catch((error)=> console.log(error))
+    
+  }
+
+  
+
+
   return (
     <div className="App">
       <header className="App-header">   
 
-        <button className='txnbutton' style={{fontSize: '50px'}} onClick={award}>Walletless and Gasless Mint</button> 
+        <button onClick={ctf}>Walletless and Gasless Mint</button> 
         { proofOfTxn ?
         <p style={{color : 'white'}}>Proof Of Txn: {proofOfTxn.hash}</p> :
         null
         }
+
+        <button className='txnbutton' style={{fontSize: '50px'}} onClick={awardPOAP}>Award Level 1 POAP</button> 
 
       </header>
     </div>
