@@ -5,6 +5,7 @@
   "dependencies": {
     "@opengsn/cli": "^2.2.6",
     "@opengsn/contracts": "^2.2.6",
+    "@opengsn/paymasters": "^2.2.6",
     "@opengsn/provider": "^2.2.6",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",

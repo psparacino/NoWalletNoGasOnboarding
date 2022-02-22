@@ -1,10 +1,25 @@
 
 import { ethers } from 'ethers';
 import { useState, useEffect } from "react";
+
+//ABIs
 import CaptureTheFlag from './build/CaptureTheFlag.json';
 import Level1Completion from './build/Level1Completion.json';
+import WhitelistPaymaster from './build/WhitelistPaymaster.json';
+import RelayHub from './build/RelayHub.json';
+
+
+//GSN provider
 
 import { RelayProvider } from '@opengsn/provider/dist/RelayProvider';
+
+
+//Address
+
+import level1CompletionDeployed from './deployedContractAddresses/Level1Completion.json';
+import whitelistPaymasterDeployed from './localGSNbuilds/WhitelistPaymasterAddress.json';
+
+import relayHubDeployed from './localGSNbuilds/RelayHub.json';
 
 import './App.css';
 
@@ -22,9 +37,23 @@ function App() {
   const [poapTokenID, setPAOPTokenID] = useState(0);
   const [poapTokenURI, setPAOPTokenURI] = useState('');
 
+  //Paymaster
+
+  const [paymasterBalance, setPaymasterBalance]= useState(0);
+  const [wlpmAddress, setWlpmAddress] = useState();
+
+  //contract Objects
+
+  const [relayHubContract, setRelayHubContract] = useState()
+
+  const [relayHubContractSign, setRelayHubContractSign] = useState()
+
+
   //error msg
   const [errorMessage, setErrorMessage]= useState('');
 
+
+  const paymasterArtifact = require('./build/WhitelistPaymaster.json')
 
 
 
@@ -42,16 +71,24 @@ function App() {
 
       async function initContract() {
 
+        const networkId = await window.ethereum.request({method: 'net_version'})
+
+        console.log(networkId, "networkId")
+
         const paymasterAddress = require('./localGSNbuilds/Paymaster.json').address
+
+
+        const whiteListPaymasterAddress = paymasterArtifact.networks[networkId].address;
+
+        setWlpmAddress(whiteListPaymasterAddress);
 
         //using metamask as a provider for now. window.ethereum will change to whatever provider the app is using
         const gsnProvider = await RelayProvider.newProvider({
           provider: window.ethereum,
           config: {
-              paymasterAddress
+              paymasterAddress : whiteListPaymasterAddress
           }
         }).init()
-
 
 
         //create one time account
@@ -67,17 +104,53 @@ function App() {
         
       }
 
-    },[])
+    },[paymasterArtifact.networks])
+
+    //gets paymaster balanace and sets sign/nosign version of RelayHub
+    useEffect(()=> {
+
+      if (relayProvider) {
+        getPaymasterBalance()
+      }
+
+      async function getPaymasterBalance() {
+        const whitelistAddress = whitelistPaymasterDeployed.address;
+        const relayContract = await new ethers.Contract(relayHubDeployed.address, RelayHub.abi, relayProvider.getSigner());
+
+        setRelayHubContract(relayContract);
+
+        const regularProvider =  new ethers.providers.Web3Provider(window.ethereum);
+
+        const relayContractSign = await new ethers.Contract(relayHubDeployed.address, RelayHub.abi, regularProvider.getSigner(0));
+
+        setRelayHubContractSign(relayContractSign);
+
+
+        //const whitelistContractEphemeral = whitelistContract.connect(relayProvider.getSigner(oneTimeAccount.address))
+  
+        //const balance = await relayProvider.getBalance(whitelistContractEphemeral.address)
+  
+        //const whitelistYesOrNo = await whitelistContractEphemeral.targetWhitelist("0x71E02441209d3dd9Ed064A4E4EafAf90D0263088")
+  
+        const balance = await relayContract.balanceOf(whitelistAddress)
+        setPaymasterBalance(ethers.utils.formatEther(balance))
+        
+        
+
+      }  
+  
+      },[relayProvider])
+      
 
 
   //getter functions
 
-  //get ownerTokenID
+  
 
   //poc function
   async function ctf() {
     //create new instance of contract
-    const CaptureTheFlagAddress = "0x0E696947A06550DEf604e82C26fd9E493e576337";
+    const CaptureTheFlagAddress = "0xC045C7B6B976d24728872d2117073c893d0B09C2";
     const CaptureTheFlagContract = await new ethers.Contract(CaptureTheFlagAddress, CaptureTheFlag.abi, relayProvider.getSigner());
 
     //let onetimeAccount connect to contract
@@ -95,17 +168,16 @@ function App() {
   }
 
 
-
+  
 
   //Level1Completiion Contract Function
+
   async function awardPOAP() {
     //create new instance of contract
-    const Level1CompletionAddress = "0xDb56f2e9369E0D7bD191099125a3f6C370F8ed15";
+    const Level1CompletionAddress = level1CompletionDeployed.address;
     const Level1CompletionContract = await new ethers.Contract(Level1CompletionAddress, Level1Completion.abi, relayProvider.getSigner());
-
     //let onetimeAccount connect to contract
     const Level1CompletionContractEphemeral = Level1CompletionContract.connect(relayProvider.getSigner(oneTimeAccount.address))
-
 
 
     if (ethers.utils.isAddress(userSubmittedAddress)) {
@@ -139,7 +211,15 @@ function App() {
     
   }
 
-  //need function that gets token ID by owner address, might need ERC721 enumberable
+  //Paymaster Functions
+
+  async function refillPaymaster() {
+    //need to be on deploying account to send
+    await relayHubContractSign.depositFor(wlpmAddress, {value: 2e18.toString()})
+    .then(result => console.log(result))
+
+  }
+
   
   return (
     <div className="App">
@@ -179,6 +259,15 @@ function App() {
 
    
         {errorMessage}
+
+        <hr style={{color: 'white', width: '80%'}} />
+
+        <h2>Paymaster Interaction</h2>
+
+        <p>Current Balance of Paymaster is: {paymasterBalance} eth</p>
+
+        <button onClick={refillPaymaster}>Refill Paymaster</button>
+
       
 
       </header>
