@@ -146,11 +146,14 @@ function App() {
       <header className="App-header"> 
 
         {/*<button onClick={ctf}>Walletless and Gasless Mint</button> */}
+        <p>refresh the page for repeat transactions</p>
+        <br />
         <button className='txnbutton' style={{fontSize: '40px', width: '50%'}} onClick={awardPOAP}>Award Level 1 POAP</button> 
 
             <input 
               name="userAddress" 
               type="text" 
+              placeholder='enter learner address here'
               onChange={(e) => setUserSubmittedAddress(e.target.value)} 
               value={userSubmittedAddress}
               style={{width: '60%', fontSize: '20px', marginTop: '50px'}} />
