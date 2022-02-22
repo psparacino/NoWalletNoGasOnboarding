@@ -1,6 +1,3 @@
-import MetaMaskButton from './components/MetaMaskButton.js';
-
-
 
 import { ethers } from 'ethers';
 import { useState, useEffect } from "react";
@@ -14,16 +11,20 @@ import './App.css';
 
 
 function App() {
-  //const {mainAccount, setMainAccount, provider, signer} = useHandleEthereum();
-  //const { CaptureTheFlagContract } = useContractObjectRepo();
-
-  const [mainAccount, setMainAccount] = useState('');
-  const [signer, setSigner] = useState('');
   const [relayProvider, setRelayProvider] = useState('');
   //const [CaptureTheFlagContract, setCaptureTheFlagContract] = useState('');
   const [oneTimeAccount, setOneTimeAccount] = useState()
   const [providerSet, setProviderSet] = useState(false)
+
+  //txn results
   const [proofOfTxn, setProofOfTxn]= useState()
+  const [userSubmittedAddress, setUserSubmittedAddress] = useState('');
+  const [poapTokenID, setPAOPTokenID] = useState(0);
+  const [poapTokenURI, setPAOPTokenURI] = useState('');
+
+  //error msg
+  const [errorMessage, setErrorMessage]= useState('');
+
 
 
 
@@ -69,6 +70,11 @@ function App() {
     },[])
 
 
+  //getter functions
+
+  //get ownerTokenID
+
+  //poc function
   async function ctf() {
     //create new instance of contract
     const CaptureTheFlagAddress = "0x0E696947A06550DEf604e82C26fd9E493e576337";
@@ -76,6 +82,8 @@ function App() {
 
     //let onetimeAccount connect to contract
     const CaptureTheFlagContractEphemeral = CaptureTheFlagContract.connect(relayProvider.getSigner(oneTimeAccount.address))
+
+    
  
     CaptureTheFlagContractEphemeral.captureTheFlag()
       .then((result) => {
@@ -87,37 +95,88 @@ function App() {
   }
 
 
+
+
+  //Level1Completiion Contract Function
   async function awardPOAP() {
     //create new instance of contract
-    const Level1CompletionAddress = "0x5f8e26fAcC23FA4cbd87b8d9Dbbd33D5047abDE1";
+    const Level1CompletionAddress = "0xDb56f2e9369E0D7bD191099125a3f6C370F8ed15";
     const Level1CompletionContract = await new ethers.Contract(Level1CompletionAddress, Level1Completion.abi, relayProvider.getSigner());
 
     //let onetimeAccount connect to contract
     const Level1CompletionContractEphemeral = Level1CompletionContract.connect(relayProvider.getSigner(oneTimeAccount.address))
-    
-    Level1CompletionContractEphemeral.awardCertificate('0xe4632110872c2213b6E0C5B7b6a88583124a15a0', 'www.google.com')
+
+
+
+    if (ethers.utils.isAddress(userSubmittedAddress)) {
+
+    setErrorMessage('')
+
+    Level1CompletionContractEphemeral.awardCertificate(userSubmittedAddress, 'https://random.imagecdn.app/500/150')
       .then((result) => {
         console.log(result, "award result") 
-        {/*setProofOfTxn(result)*/}
+        setProofOfTxn(result)
       })
-      .catch((error)=> console.log(error))
+      .then(setUserSubmittedAddress(''))
+      .then(async() => {
+        const newTokenID = (await Level1CompletionContract.tokenOfOwnerByIndex(userSubmittedAddress, 0)).toNumber()
+
+        const newTokenURI = await Level1CompletionContract.tokenURI(newTokenID);
+        setPAOPTokenID(newTokenID)
+        setPAOPTokenURI(newTokenURI)
+
+        console.log(userSubmittedAddress, "userSubmittedAddress", newTokenID, "newTokenID", newTokenURI, "RELEVANT TXN RESULTS RESULTS")
+
+      })
+      .catch((error)=> {
+        console.log(error, "award error")
+        setErrorMessage(error.data.message)
+      })
+
+    } else{
+      setErrorMessage('Please enter a valid address')
+    }
     
   }
 
+  //need function that gets token ID by owner address, might need ERC721 enumberable
   
-
-
   return (
     <div className="App">
-      <header className="App-header">   
+      <header className="App-header"> 
 
-        <button onClick={ctf}>Walletless and Gasless Mint</button> 
-        { proofOfTxn ?
-        <p style={{color : 'white'}}>Proof Of Txn: {proofOfTxn.hash}</p> :
-        null
+        {/*<button onClick={ctf}>Walletless and Gasless Mint</button> */}
+        <button className='txnbutton' style={{fontSize: '40px', width: '50%'}} onClick={awardPOAP}>Award Level 1 POAP</button> 
+
+            <input 
+              name="userAddress" 
+              type="text" 
+              onChange={(e) => setUserSubmittedAddress(e.target.value)} 
+              value={userSubmittedAddress}
+              style={{width: '60%', fontSize: '20px', marginTop: '50px'}} />
+
+         { proofOfTxn ?
+          <p style={{color : 'white', fontSize: '30px'}}>Proof Of Txn: {proofOfTxn.hash}</p> :
+          null
         }
 
-        <button className='txnbutton' style={{fontSize: '50px'}} onClick={awardPOAP}>Award Level 1 POAP</button> 
+        { poapTokenID ?
+          <p style={{color : 'white'}}>New Token ID: {poapTokenID}</p> :
+          null
+        }
+
+        { poapTokenURI ?
+            <>
+              <p style={{color : 'white'}}>Token Image:</p>
+              <img src={poapTokenURI} alt={"poap token img"} />
+            </>
+           :
+          null
+        }
+
+   
+        {errorMessage}
+      
 
       </header>
     </div>
