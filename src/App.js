@@ -3,9 +3,7 @@ import { ethers } from 'ethers';
 import { useState, useEffect } from "react";
 
 //ABIs
-import CaptureTheFlag from './build/CaptureTheFlag.json';
 import Level1Completion from './build/Level1Completion.json';
-import WhitelistPaymaster from './build/WhitelistPaymaster.json';
 import RelayHub from './build/RelayHub.json';
 
 
@@ -17,7 +15,6 @@ import { RelayProvider } from '@opengsn/provider/dist/RelayProvider';
 //Address
 
 import level1CompletionDeployed from './deployedContractAddresses/Level1Completion.json';
-import whitelistPaymasterDeployed from './localGSNbuilds/WhitelistPaymasterAddress.json';
 
 import relayHubDeployed from './localGSNbuilds/RelayHub.json';
 
@@ -27,26 +24,26 @@ import './App.css';
 
 function App() {
   const [relayProvider, setRelayProvider] = useState('');
-  //const [CaptureTheFlagContract, setCaptureTheFlagContract] = useState('');
   const [oneTimeAccount, setOneTimeAccount] = useState()
-  const [providerSet, setProviderSet] = useState(false)
+
 
   //txn results
   const [proofOfTxn, setProofOfTxn]= useState()
   const [userSubmittedAddress, setUserSubmittedAddress] = useState('');
   const [poapTokenID, setPAOPTokenID] = useState(0);
   const [poapTokenURI, setPAOPTokenURI] = useState('');
+  const [balanceUpdated, setBalanceUpdated] = useState(false)
 
   //Paymaster
 
   const [paymasterBalance, setPaymasterBalance]= useState(0);
-  const [wlpmAddress, setWlpmAddress] = useState();
+  const [whitelistPMAddress, setWhitelistPMAddress] = useState();
 
   //contract Objects
 
-  const [relayHubContract, setRelayHubContract] = useState()
-
   const [relayHubContractSign, setRelayHubContractSign] = useState()
+
+  const [Level1CompletionContractEphemeral, setLevel1CompletionContractEphemeral] = useState()
 
 
   //error msg
@@ -56,6 +53,7 @@ function App() {
   const paymasterArtifact = require('./build/WhitelistPaymaster.json')
 
 
+  //set provider and WhiteListPaymaster addresss
 
   useEffect(()=> {
 
@@ -73,14 +71,11 @@ function App() {
 
         const networkId = await window.ethereum.request({method: 'net_version'})
 
-        console.log(networkId, "networkId")
-
-        const paymasterAddress = require('./localGSNbuilds/Paymaster.json').address
-
+        //for local paymaster
+        //const paymasterAddress = require('./localGSNbuilds/Paymaster.json').address
 
         const whiteListPaymasterAddress = paymasterArtifact.networks[networkId].address;
-
-        setWlpmAddress(whiteListPaymasterAddress);
+        setWhitelistPMAddress(whiteListPaymasterAddress);
 
         //using metamask as a provider for now. window.ethereum will change to whatever provider the app is using
         const gsnProvider = await RelayProvider.newProvider({
@@ -90,100 +85,78 @@ function App() {
           }
         }).init()
 
+        const relayedProvider =  new ethers.providers.Web3Provider(gsnProvider)
+        setRelayProvider(relayedProvider) 
+
 
         //create one time account
         const uniqueOneTimeAccount = gsnProvider.newAccount()
         setOneTimeAccount(uniqueOneTimeAccount)
 
-        const relayedProvider =  new ethers.providers.Web3Provider(gsnProvider)
-
-        setRelayProvider(relayedProvider)
-        setProviderSet(true)     
-        
+  
 
         
       }
 
     },[paymasterArtifact.networks])
 
-    //gets paymaster balanace and sets sign/nosign version of RelayHub
+
+    //create Contract Instances
     useEffect(()=> {
 
-      if (relayProvider) {
-        getPaymasterBalance()
+      if (relayProvider && oneTimeAccount) {
+        createContractObjects()
       }
 
-      async function getPaymasterBalance() {
-        const whitelistAddress = whitelistPaymasterDeployed.address;
-        const relayContract = await new ethers.Contract(relayHubDeployed.address, RelayHub.abi, relayProvider.getSigner());
+      async function createContractObjects() {
 
-        setRelayHubContract(relayContract);
+        //create new instance of relayHub for owner use
 
         const regularProvider =  new ethers.providers.Web3Provider(window.ethereum);
-
         const relayContractSign = await new ethers.Contract(relayHubDeployed.address, RelayHub.abi, regularProvider.getSigner(0));
-
-        console.log(relayContractSign, "RelayHub")
-
-      
-
         setRelayHubContractSign(relayContractSign);
 
+        //create new instance of Level1Completion contract
+        const Level1CompletionAddress = level1CompletionDeployed.address;
+        const Level1CompletionContract = await new ethers.Contract(Level1CompletionAddress, Level1Completion.abi, relayProvider.getSigner());
 
-        //const whitelistContractEphemeral = whitelistContract.connect(relayProvider.getSigner(oneTimeAccount.address))
-  
-        //const balance = await relayProvider.getBalance(whitelistContractEphemeral.address)
-  
-        //const whitelistYesOrNo = await whitelistContractEphemeral.targetWhitelist("0x71E02441209d3dd9Ed064A4E4EafAf90D0263088")
-  
-        const balance = await relayContract.balanceOf(whitelistAddress)
-        setPaymasterBalance(ethers.utils.formatEther(balance))
-        
-        
+        //let onetimeAccount connect to contract
+        const ephemeralContract = Level1CompletionContract.connect(relayProvider.getSigner(oneTimeAccount.address))
+
+        setLevel1CompletionContractEphemeral(ephemeralContract)
 
       }  
   
-      },[relayProvider])
-      
+      },[relayProvider, oneTimeAccount])
 
 
-  //getter functions
+      //balance listener
+
+      useEffect(()=> {
+
+        if ((whitelistPMAddress && relayHubContractSign) || balanceUpdated) {
+          updateBalance()
+        }
+  
+        async function updateBalance() {
+
+          const balance = await relayHubContractSign.balanceOf(whitelistPMAddress)
+          const formattedBalance = ethers.utils.formatEther(balance)
+
+          setPaymasterBalance(formattedBalance)
+          setBalanceUpdated(false)
+
+        }  
+    
+        },[whitelistPMAddress, relayHubContractSign, balanceUpdated])
+
+
+       
 
   
-
-  //poc function
-  async function ctf() {
-    //create new instance of contract
-    const CaptureTheFlagAddress = "0xC045C7B6B976d24728872d2117073c893d0B09C2";
-    const CaptureTheFlagContract = await new ethers.Contract(CaptureTheFlagAddress, CaptureTheFlag.abi, relayProvider.getSigner());
-
-    //let onetimeAccount connect to contract
-    const CaptureTheFlagContractEphemeral = CaptureTheFlagContract.connect(relayProvider.getSigner(oneTimeAccount.address))
-
-    
- 
-    CaptureTheFlagContractEphemeral.captureTheFlag()
-      .then((result) => {
-        console.log(result, "ctf result") 
-        setProofOfTxn(result)
-      })
-      .catch((error)=> console.log(error))
-    
-  }
-
-
-  
-
   //Level1Completiion Contract Function
 
   async function awardPOAP() {
-    //create new instance of contract
-    const Level1CompletionAddress = level1CompletionDeployed.address;
-    const Level1CompletionContract = await new ethers.Contract(Level1CompletionAddress, Level1Completion.abi, relayProvider.getSigner());
-    //let onetimeAccount connect to contract
-    const Level1CompletionContractEphemeral = Level1CompletionContract.connect(relayProvider.getSigner(oneTimeAccount.address))
-
-
     if (ethers.utils.isAddress(userSubmittedAddress)) {
 
       setErrorMessage('')
@@ -195,12 +168,11 @@ function App() {
         })
         .then(setUserSubmittedAddress(''))
         .then(async() => {
-          const newTokenID = (await Level1CompletionContract.tokenOfOwnerByIndex(userSubmittedAddress, 0)).toNumber()
 
-          const newTokenURI = await Level1CompletionContract.tokenURI(newTokenID);
+          const newTokenID = (await Level1CompletionContractEphemeral.tokenOfOwnerByIndex(userSubmittedAddress, 0)).toNumber()
+          const newTokenURI = await Level1CompletionContractEphemeral.tokenURI(newTokenID);
           setPAOPTokenID(newTokenID)
           setPAOPTokenURI(newTokenURI)
-
 
           console.log(userSubmittedAddress, "userSubmittedAddress", newTokenID, "newTokenID", newTokenURI, "RELEVANT TXN RESULTS RESULTS")
 
@@ -211,29 +183,33 @@ function App() {
         })
 
     } else{
-      setErrorMessage('Please enter a valid address')
+        setErrorMessage('Please enter a valid address')
     }
     
   }
 
-  //Paymaster Functions
+  //Paymaster Component
 
 
   const RefillPaymaster = () => {
     //need to be on deploying account to send
     const [amount, setAmount]= useState(0);
     const [amountMessage, setAmountMessage] = useState('');
+
+    useEffect(()=> {
+      setAmountMessage('')
+      setAmount(0)
+      },[])
     
     async function deposit () {
       if (amount > 0){
-      await relayHubContractSign.depositFor(wlpmAddress, {value: amount.toString()})
-        .then(async(result) => {
+      await relayHubContractSign.depositFor(whitelistPMAddress, {value: amount.toString()})
+        .then((result) => {
           relayProvider.waitForTransaction(result.hash)
-          .then(async(result) => {
+          .then((result) => {
             if (result) {
-              const balance = await relayHubContractSign.balanceOf(wlpmAddress)
-              setPaymasterBalance(ethers.utils.formatEther(balance))
-              setAmountMessage('')
+              setBalanceUpdated(true);
+              
             }
           })
         })
@@ -247,18 +223,24 @@ function App() {
  
 
   return (
+    
+    <div style={{width: '60%'}}>
 
-    <div>
+      <button onClick={deposit}  style={{fontSize: '30px', width: '60%'}} > Send to Paymaster</button>
+      {amountMessage ?
+      <p>{amountMessage}</p>
+      : null}  
+
       <input 
       name="refillPaymaster" 
       type="text" 
       placeholder='enter amount to send to paymaster'
       onChange={(e) => setAmount(e.target.value)} 
       value={amount || ''}
-      style={{width: '60%', fontSize: '20px', marginTop: '50px'}} />
+      style={{width: '70%', fontSize: '20px', marginTop: '10px', textAlign: 'center'}} />
+      
+       
 
-      <button onClick={deposit}  style={{fontSize: '40px', width: '50%'}} > Send to Paymaster</button>
-      {amountMessage}
     </div>
 
 
@@ -271,7 +253,8 @@ function App() {
     <div className="App">
       <header className="App-header"> 
 
-        {/*<button onClick={ctf}>Walletless and Gasless Mint</button> */}
+       
+
         <p>refresh the page for repeat transactions</p>
         <br />
         <button className='txnbutton' style={{fontSize: '40px', width: '50%'}} onClick={awardPOAP}>Award Level 1 POAP</button> 
@@ -282,7 +265,7 @@ function App() {
               placeholder='enter learner address here'
               onChange={(e) => setUserSubmittedAddress(e.target.value)} 
               value={userSubmittedAddress || ''}
-              style={{width: '60%', fontSize: '20px', marginTop: '50px'}} />
+              style={{width: '60%', fontSize: '20px', marginTop: '50px', textAlign: 'center'}} />
 
          { proofOfTxn ?
           <p style={{color : 'white', fontSize: '30px'}}>Proof Of Txn: {proofOfTxn.hash}</p> :
@@ -312,12 +295,7 @@ function App() {
 
         <p>Current Balance of Paymaster is: {paymasterBalance} eth</p>
 
-
         <RefillPaymaster />
-
-        {/*<button onClick={refillPaymaster}>Refill Paymaster</button>*/}
-
-      
 
       </header>
     </div>
