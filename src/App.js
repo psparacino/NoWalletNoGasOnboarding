@@ -123,6 +123,10 @@ function App() {
 
         const relayContractSign = await new ethers.Contract(relayHubDeployed.address, RelayHub.abi, regularProvider.getSigner(0));
 
+        console.log(relayContractSign, "RelayHub")
+
+      
+
         setRelayHubContractSign(relayContractSign);
 
 
@@ -182,28 +186,29 @@ function App() {
 
     if (ethers.utils.isAddress(userSubmittedAddress)) {
 
-    setErrorMessage('')
+      setErrorMessage('')
 
-    Level1CompletionContractEphemeral.awardCertificate(userSubmittedAddress, 'https://random.imagecdn.app/500/150')
-      .then((result) => {
-        console.log(result, "award result") 
-        setProofOfTxn(result)
-      })
-      .then(setUserSubmittedAddress(''))
-      .then(async() => {
-        const newTokenID = (await Level1CompletionContract.tokenOfOwnerByIndex(userSubmittedAddress, 0)).toNumber()
+      Level1CompletionContractEphemeral.awardCertificate(userSubmittedAddress, 'https://random.imagecdn.app/500/150')
+        .then((result) => {
+          console.log(result, "award result") 
+          setProofOfTxn(result)
+        })
+        .then(setUserSubmittedAddress(''))
+        .then(async() => {
+          const newTokenID = (await Level1CompletionContract.tokenOfOwnerByIndex(userSubmittedAddress, 0)).toNumber()
 
-        const newTokenURI = await Level1CompletionContract.tokenURI(newTokenID);
-        setPAOPTokenID(newTokenID)
-        setPAOPTokenURI(newTokenURI)
+          const newTokenURI = await Level1CompletionContract.tokenURI(newTokenID);
+          setPAOPTokenID(newTokenID)
+          setPAOPTokenURI(newTokenURI)
 
-        console.log(userSubmittedAddress, "userSubmittedAddress", newTokenID, "newTokenID", newTokenURI, "RELEVANT TXN RESULTS RESULTS")
 
-      })
-      .catch((error)=> {
-        console.log(error, "award error")
-        setErrorMessage(error.data.message)
-      })
+          console.log(userSubmittedAddress, "userSubmittedAddress", newTokenID, "newTokenID", newTokenURI, "RELEVANT TXN RESULTS RESULTS")
+
+        })
+        .catch((error)=> {
+          console.log(error, "award error")
+          setErrorMessage(error.data.message)
+        })
 
     } else{
       setErrorMessage('Please enter a valid address')
@@ -213,10 +218,51 @@ function App() {
 
   //Paymaster Functions
 
-  async function refillPaymaster() {
+
+  const RefillPaymaster = () => {
     //need to be on deploying account to send
-    await relayHubContractSign.depositFor(wlpmAddress, {value: 2e18.toString()})
-    .then(result => console.log(result))
+    const [amount, setAmount]= useState(0);
+    const [amountMessage, setAmountMessage] = useState('');
+    
+    async function deposit () {
+      if (amount > 0){
+      await relayHubContractSign.depositFor(wlpmAddress, {value: amount.toString()})
+        .then(async(result) => {
+          relayProvider.waitForTransaction(result.hash)
+          .then(async(result) => {
+            if (result) {
+              const balance = await relayHubContractSign.balanceOf(wlpmAddress)
+              setPaymasterBalance(ethers.utils.formatEther(balance))
+              setAmountMessage('')
+            }
+          })
+        })
+        .catch(err => console.log(err, 'refill error'))
+        } else {
+          setAmountMessage('enter an amount greater than zero')
+        }
+  }
+
+
+ 
+
+  return (
+
+    <div>
+      <input 
+      name="refillPaymaster" 
+      type="text" 
+      placeholder='enter amount to send to paymaster'
+      onChange={(e) => setAmount(e.target.value)} 
+      value={amount || ''}
+      style={{width: '60%', fontSize: '20px', marginTop: '50px'}} />
+
+      <button onClick={deposit}  style={{fontSize: '40px', width: '50%'}} > Send to Paymaster</button>
+      {amountMessage}
+    </div>
+
+
+  )
 
   }
 
@@ -235,7 +281,7 @@ function App() {
               type="text" 
               placeholder='enter learner address here'
               onChange={(e) => setUserSubmittedAddress(e.target.value)} 
-              value={userSubmittedAddress}
+              value={userSubmittedAddress || ''}
               style={{width: '60%', fontSize: '20px', marginTop: '50px'}} />
 
          { proofOfTxn ?
@@ -266,7 +312,10 @@ function App() {
 
         <p>Current Balance of Paymaster is: {paymasterBalance} eth</p>
 
-        <button onClick={refillPaymaster}>Refill Paymaster</button>
+
+        <RefillPaymaster />
+
+        {/*<button onClick={refillPaymaster}>Refill Paymaster</button>*/}
 
       
 
