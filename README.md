@@ -8,6 +8,7 @@ on Rinkeby.
 
 1. Create .env file
 2. Populate with two variables--> REACT_APP_MNEMONIC, REACT_APP_INFURA_URL . ***BOTH NEED TO BE STRINGS***
+3. yarn start
 
 Start Local Development   
 1.  `yarn ganache` to start local chain
