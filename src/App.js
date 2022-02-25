@@ -16,23 +16,29 @@ import { RelayProvider } from '@opengsn/provider/dist/RelayProvider';
 
 import level1CompletionDeployed from './deployedContractAddresses/Level1Completion.json';
 
-import relayHubDeployed from './localGSNbuilds/RelayHub.json';
+import relayHubDeployed from './localGSNbuilds/RelayHub.json'
+
+import whitelistDeployed from './deployedContractAddresses/WhitelistPaymaster.json';
+
 
 import './App.css';
+
+import { BeatLoader } from 'react-spinners';
 
 
 
 function App() {
   const [relayProvider, setRelayProvider] = useState('');
-  const [oneTimeAccount, setOneTimeAccount] = useState()
+  const [oneTimeAccount, setOneTimeAccount] = useState();
 
 
   //txn results
-  const [proofOfTxn, setProofOfTxn]= useState()
+  const [proofOfTxn, setProofOfTxn]= useState();
   const [userSubmittedAddress, setUserSubmittedAddress] = useState('');
   const [poapTokenID, setPAOPTokenID] = useState(0);
   const [poapTokenURI, setPAOPTokenURI] = useState('');
-  const [balanceUpdated, setBalanceUpdated] = useState(false)
+  const [balanceUpdated, setBalanceUpdated] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   //Paymaster
 
@@ -41,9 +47,8 @@ function App() {
 
   //contract Objects
 
-  const [relayHubContractSign, setRelayHubContractSign] = useState()
-
-  const [Level1CompletionContractEphemeral, setLevel1CompletionContractEphemeral] = useState()
+  const [relayHubContractSign, setRelayHubContractSign] = useState();
+  const [Level1CompletionContractEphemeral, setLevel1CompletionContractEphemeral] = useState();
 
 
   //error msg
@@ -75,14 +80,20 @@ function App() {
         //const paymasterAddress = require('./localGSNbuilds/Paymaster.json').address
 
         const whiteListPaymasterAddress = paymasterArtifact.networks[networkId].address;
-        setWhitelistPMAddress(whiteListPaymasterAddress);
+        setWhitelistPMAddress(whitelistDeployed.address);
+
+        const gsnConfig = {
+          relayLookupWindowBlocks: 1e5,
+          relayRegistrationLookupBlocks: 1e5,
+          pastEventsQueryMaxPageSize: 2e4,
+          paymasterAddress : whitelistDeployed.address,
+          gasPrice: 0
+        }
 
         //using metamask as a provider for now. window.ethereum will change to whatever provider the app is using
         const gsnProvider = await RelayProvider.newProvider({
           provider: window.ethereum,
-          config: {
-              paymasterAddress : whiteListPaymasterAddress
-          }
+          config: gsnConfig
         }).init()
 
         const relayedProvider =  new ethers.providers.Web3Provider(gsnProvider)
@@ -139,7 +150,6 @@ function App() {
         }
   
         async function updateBalance() {
-
           const balance = await relayHubContractSign.balanceOf(whitelistPMAddress)
           const formattedBalance = ethers.utils.formatEther(balance)
 
@@ -150,36 +160,37 @@ function App() {
     
         },[whitelistPMAddress, relayHubContractSign, balanceUpdated])
 
+    
 
-       
-
-  
   //Level1Completiion Contract Function
 
   async function awardPOAP() {
     if (ethers.utils.isAddress(userSubmittedAddress)) {
 
       setErrorMessage('')
-
       Level1CompletionContractEphemeral.awardCertificate(userSubmittedAddress, 'https://random.imagecdn.app/500/150')
         .then((result) => {
           console.log(result, "award result") 
           setProofOfTxn(result)
+          setLoading(true)
+          relayProvider.waitForTransaction(result.hash)
+            .then(async() => {           
+              const newTokenID = await Level1CompletionContractEphemeral.tokenOfOwnerByIndex(userSubmittedAddress, 0)
+              const newTokenURI = await Level1CompletionContractEphemeral.tokenURI(newTokenID);
+              setPAOPTokenID(newTokenID)
+              setPAOPTokenURI(newTokenURI)
+              setUserSubmittedAddress('')
+              setLoading(false)
+              console.log(userSubmittedAddress, "userSubmittedAddress", newTokenID.toNumber(), "newTokenID", newTokenURI, "RELEVANT TXN RESULTS RESULTS")
+    
+            })
         })
-        .then(setUserSubmittedAddress(''))
-        .then(async() => {
 
-          const newTokenID = (await Level1CompletionContractEphemeral.tokenOfOwnerByIndex(userSubmittedAddress, 0)).toNumber()
-          const newTokenURI = await Level1CompletionContractEphemeral.tokenURI(newTokenID);
-          setPAOPTokenID(newTokenID)
-          setPAOPTokenURI(newTokenURI)
-
-          console.log(userSubmittedAddress, "userSubmittedAddress", newTokenID, "newTokenID", newTokenURI, "RELEVANT TXN RESULTS RESULTS")
-
-        })
         .catch((error)=> {
+          setLoading(false)
           console.log(error, "award error")
-          setErrorMessage(error.data.message)
+          setErrorMessage(error)
+          
         })
 
     } else{
@@ -203,17 +214,22 @@ function App() {
     
     async function deposit () {
       if (amount > 0){
+      setLoading(true)
       await relayHubContractSign.depositFor(whitelistPMAddress, {value: amount.toString()})
         .then((result) => {
           relayProvider.waitForTransaction(result.hash)
           .then((result) => {
             if (result) {
               setBalanceUpdated(true);
+              setLoading(false)
               
             }
           })
         })
-        .catch(err => console.log(err, 'refill error'))
+        .catch((err) => {
+          console.log(err, 'refill error') 
+          setLoading(false)
+        })
         } else {
           setAmountMessage('enter an amount greater than zero')
         }
@@ -223,9 +239,9 @@ function App() {
  
 
   return (
+  
     
     <div style={{width: '60%'}}>
-
       <button onClick={deposit}  style={{fontSize: '30px', width: '60%'}} > Send to Paymaster</button>
       {amountMessage ?
       <p>{amountMessage}</p>
@@ -252,7 +268,14 @@ function App() {
   return (
     <div className="App">
       <header className="App-header"> 
-
+        <BeatLoader color={'gray'} loading={loading}size={50} />
+        {loading ? 
+        <>
+          <p>Waiting for transaction to mine...</p> 
+          <hr style={{color: 'white', width: '80%'}}/> 
+        </>
+              
+        : null }
        
 
         <p>refresh the page for repeat transactions</p>
@@ -271,9 +294,10 @@ function App() {
           <p style={{color : 'white', fontSize: '30px'}}>Proof Of Txn: {proofOfTxn.hash}</p> :
           null
         }
+        
 
         { poapTokenID ?
-          <p style={{color : 'white'}}>New Token ID: {poapTokenID}</p> :
+          <p style={{color : 'white'}}>New Token ID: {poapTokenID.toNumber()}</p> :
           null
         }
 
