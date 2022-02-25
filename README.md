@@ -4,7 +4,10 @@ Initial Project SetUp
 1.  git clone, yarn to add deps
 2.  ONE TIME ONLY: create .env at root and add `GENERATE_SOURCEMAP=false`
    
+on Rinkeby.
 
+1. Create .env file
+2. Populate with two variables--> REACT_APP_MNEMONIC, REACT_APP_INFURA_URL . ***BOTH NEED TO BE STRINGS***
 
 Start Local Development   
 1.  `yarn ganache` to start local chain
