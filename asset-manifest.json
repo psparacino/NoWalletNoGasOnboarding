@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.css": "/sanswalletandgasonboarding/static/css/main.fef12180.chunk.css",
+    "main.css": "/sanswalletandgasonboarding/static/css/main.4a7e67db.chunk.css",
     "main.js": "/sanswalletandgasonboarding/static/js/main.22d884e7.chunk.js",
     "runtime-main.js": "/sanswalletandgasonboarding/static/js/runtime-main.e071ee2e.js",
     "static/js/2.185a6e23.chunk.js": "/sanswalletandgasonboarding/static/js/2.185a6e23.chunk.js",
@@ -11,7 +11,7 @@
   "entrypoints": [
     "static/js/runtime-main.e071ee2e.js",
     "static/js/2.185a6e23.chunk.js",
-    "static/css/main.fef12180.chunk.css",
+    "static/css/main.4a7e67db.chunk.css",
     "static/js/main.22d884e7.chunk.js"
   ]
 }
