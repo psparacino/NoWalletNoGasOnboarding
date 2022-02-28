@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/sanswalletandgasonboarding/static/css/main.fef12180.chunk.css",
+    "main.js": "/sanswalletandgasonboarding/static/js/main.22d884e7.chunk.js",
+    "runtime-main.js": "/sanswalletandgasonboarding/static/js/runtime-main.e071ee2e.js",
+    "static/js/2.185a6e23.chunk.js": "/sanswalletandgasonboarding/static/js/2.185a6e23.chunk.js",
+    "static/js/3.ac7df166.chunk.js": "/sanswalletandgasonboarding/static/js/3.ac7df166.chunk.js",
+    "index.html": "/sanswalletandgasonboarding/index.html",
+    "static/js/2.185a6e23.chunk.js.LICENSE.txt": "/sanswalletandgasonboarding/static/js/2.185a6e23.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.e071ee2e.js",
+    "static/js/2.185a6e23.chunk.js",
+    "static/css/main.fef12180.chunk.css",
+    "static/js/main.22d884e7.chunk.js"
+  ]
+}
