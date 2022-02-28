@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/NoWalletNoGasOnboarding/static/css/main.d28a8e4e.chunk.css",
-    "main.js": "/NoWalletNoGasOnboarding/static/js/main.1559a56b.chunk.js",
+    "main.js": "/NoWalletNoGasOnboarding/static/js/main.ef0d3423.chunk.js",
     "runtime-main.js": "/NoWalletNoGasOnboarding/static/js/runtime-main.4d886c00.js",
     "static/js/2.6fe0866b.chunk.js": "/NoWalletNoGasOnboarding/static/js/2.6fe0866b.chunk.js",
     "static/js/3.ac7df166.chunk.js": "/NoWalletNoGasOnboarding/static/js/3.ac7df166.chunk.js",
@@ -12,6 +12,6 @@
     "static/js/runtime-main.4d886c00.js",
     "static/js/2.6fe0866b.chunk.js",
     "static/css/main.d28a8e4e.chunk.css",
-    "static/js/main.1559a56b.chunk.js"
+    "static/js/main.ef0d3423.chunk.js"
   ]
 }
