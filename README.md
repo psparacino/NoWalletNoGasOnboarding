@@ -1,5 +1,11 @@
 Steps to starting project--->
 
+Make sure you have Metamask installed and are connected Rinkeby:
+
+temp website--> https://psparacino.github.io/NoWalletNoGasOnboarding/
+
+
+
 Initial Project SetUp
 1.  git clone, yarn to add deps
 2.  ONE TIME ONLY: create .env at root and add `GENERATE_SOURCEMAP=false`
