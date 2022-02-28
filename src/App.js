@@ -188,8 +188,12 @@ function App() {
 
         .catch((error)=> {
           setLoading(false)
-          console.log(error, "award error")
+          console.log(error.message, "award error")
+          if ((error.message).includes("awarded")) {
+            setErrorMessage('learner has already been awarded this token')
+          } else {
           setErrorMessage(error)
+          }
           
         })
 
@@ -277,8 +281,11 @@ function App() {
               
         : null }
        
-
-        <p>refresh the page for repeat transactions</p>
+        <div className="info-text">
+          <p>refresh the page for repeat transactions</p>
+          <p>make sure you are connected to Rinkeby</p>
+        </div>
+        
         <br />
         <button className='txnbutton' style={{fontSize: '40px', width: '50%'}} onClick={awardPOAP}>Award Level 1 POAP</button> 
 

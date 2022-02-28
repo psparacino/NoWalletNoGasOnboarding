@@ -1,5 +1,6 @@
 {
   "name": "react-app-template",
+  "homepage": "https://psparacino.github.io/NoWalletNoGasOnboarding",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -19,6 +20,7 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.4",
     "ganache-cli": "^6.12.2",
+    "gh-pages": "^3.2.3",
     "react": "^16.0.10",
     "react-dom": "^16.0.10",
     "react-scripts": "4.0.3",
@@ -30,6 +32,8 @@
   },
   "scripts": {
     "yarnstart": "yarn react-start",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
