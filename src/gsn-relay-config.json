@@ -2,11 +2,11 @@
     "baseRelayFee": 0,
     "pctRelayFee": 70,
     "versionRegistryAddress": "0xedD8C4103acAd42F7478021143E29e1B05aD85C6",
-    "ownerAddress": "0xE42BCe4699dfE9053d460c88c7edDAB19644281B",
+    "ownerAddress": "0xe4632110872c2213b6E0C5B7b6a88583124a15a0",
     "gasPriceFactor": 1,
     "maxGasPrice": 1e12,
     "registrationBlockRate": 1e5,
     "coldRestartLogsFromBlock": 8473788,
     "pastEventsQueryMaxPageSize": 2e4,
-    "ethereumNodeUrl": "https://rinkeby.infura.io/v3/61b2fd20d10849dd93a482c6952500d9"
+    "ethereumNodeUrl": "https://eth-rinkeby.alchemyapi.io/v2/lUClO9NkAFshlkgvnVQD0IwrkYIRCHU_"
   }

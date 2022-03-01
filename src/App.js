@@ -12,6 +12,7 @@ import RelayHub from './build/RelayHub.json';
 import { RelayProvider } from '@opengsn/provider/dist/RelayProvider';
 
 
+
 //Address
 
 import level1CompletionDeployed from './deployedContractAddresses/Level1Completion.json';
@@ -20,10 +21,14 @@ import relayHubDeployed from './localGSNbuilds/RelayHub.json'
 
 import whitelistDeployed from './deployedContractAddresses/WhitelistPaymaster.json';
 
-
+//style
 import './App.css';
 
 import { BeatLoader } from 'react-spinners';
+
+
+const HttpProvider = require( 'web3-providers-http')
+
 
 
 
@@ -54,6 +59,9 @@ function App() {
   //error msg
   const [errorMessage, setErrorMessage]= useState('');
 
+  //http provider 
+  const [localHttpProvider, setLocalHttpProvider] = useState('')
+
 
   const paymasterArtifact = require('./build/WhitelistPaymaster.json')
 
@@ -61,25 +69,23 @@ function App() {
   //set provider and WhiteListPaymaster addresss
 
   useEffect(()=> {
-
-    if (window.ethereum) {
+    
+ 
         initContract()
-        .then(result => console.log(result, "result"))
-        .catch(error => console.log(error, "error"))
+        .then(result => console.log(result, "init result"))
+        .catch(error => console.log(error, "init error"))
 
-        console.log("ethereum is here")
-      } else {
-        console.log("ethereum not found")
-      }
+  
+ 
 
       async function initContract() {
 
-        const networkId = await window.ethereum.request({method: 'net_version'})
+        //const networkId = await window.ethereum.request({method: 'net_version'})
 
         //for local paymaster
         //const paymasterAddress = require('./localGSNbuilds/Paymaster.json').address
 
-        const whiteListPaymasterAddress = paymasterArtifact.networks[networkId].address;
+        //const whiteListPaymasterAddress = paymasterArtifact.networks[networkId].address;
         setWhitelistPMAddress(whitelistDeployed.address);
 
         const gsnConfig = {
@@ -90,15 +96,19 @@ function App() {
           gasPrice: 0
         }
 
-        //using metamask as a provider for now. window.ethereum will change to whatever provider the app is using
+
+        let httpweb3provider = new HttpProvider("https://eth-rinkeby.alchemyapi.io/v2/lUClO9NkAFshlkgvnVQD0IwrkYIRCHU_")
+
+        setLocalHttpProvider(httpweb3provider)
+
         const gsnProvider = await RelayProvider.newProvider({
-          provider: window.ethereum,
+          provider: httpweb3provider,
           config: gsnConfig
         }).init()
 
+        
         const relayedProvider =  new ethers.providers.Web3Provider(gsnProvider)
         setRelayProvider(relayedProvider) 
-
 
         //create one time account
         const uniqueOneTimeAccount = gsnProvider.newAccount()
@@ -109,10 +119,11 @@ function App() {
         
       }
 
-    },[paymasterArtifact.networks])
+    },[/*paymasterArtifact.networks*/])
 
 
     //create Contract Instances
+
     useEffect(()=> {
 
       if (relayProvider && oneTimeAccount) {
@@ -122,9 +133,10 @@ function App() {
       async function createContractObjects() {
 
         //create new instance of relayHub for owner use
-
-        const regularProvider =  new ethers.providers.Web3Provider(window.ethereum);
-        const relayContractSign = await new ethers.Contract(relayHubDeployed.address, RelayHub.abi, regularProvider.getSigner(0));
+        
+        const regularProvider =  new ethers.providers.AlchemyProvider('rinkeby', process.env.REACT_APP_ALCHEMY_API_KEY)
+        const ownerWalletWithProvider = new ethers.Wallet(process.env.REACT_APP_PRIVATE_KEY, regularProvider);
+        const relayContractSign = await new ethers.Contract(relayHubDeployed.address, RelayHub.abi, ownerWalletWithProvider);
         setRelayHubContractSign(relayContractSign);
 
         //create new instance of Level1Completion contract
@@ -138,7 +150,8 @@ function App() {
 
       }  
   
-      },[relayProvider, oneTimeAccount])
+      },[relayProvider, oneTimeAccount, localHttpProvider])
+      
 
 
       //balance listener
@@ -188,7 +201,7 @@ function App() {
 
         .catch((error)=> {
           setLoading(false)
-          console.log(error.message, "award error")
+          console.log(error.data.message, "award error")
           if ((error.message).includes("awarded")) {
             setErrorMessage('learner has already been awarded this token')
           } else {

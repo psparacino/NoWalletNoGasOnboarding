@@ -11,10 +11,10 @@ module.exports = async function (deployer) {
 
   // deploy CTF
 
-  const forwarder = require('../build/gsn/Forwarder.json').address
-  //const CTFresult = await deployer.deploy(CaptureTheFlag, forwarder)
+  const forwarder = require('../src/localGSNbuilds/Forwarder.json').address
 
-  //console.log("Capture the Flag Deployed to:", CTFresult)
+  console.log(forwarder, "forwarder")
+
 
 
   //deploy L1 Completion
@@ -25,7 +25,7 @@ module.exports = async function (deployer) {
       fs.writeFile('./src/deployedContractAddresses/Level1Completion.json', `{ "address": "${result.address}" }`, (err) => {
 
         if (err)
-        console.log(err);
+        console.log(err, "L1 error");
         else {
           console.log("File written successfully\n");
         }
@@ -34,7 +34,7 @@ module.exports = async function (deployer) {
     })
 
   const L1result = await Level1Completion.deployed()
-
+  
 
   //Deploy Whitelist Paymaster
 
