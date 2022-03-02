@@ -1,4 +1,4 @@
-##User Walletless and Gasless User Contract Interaction
+## User Walletless and Gasless User Contract Interaction
 
 **Demo Page**--> https://psparacino.github.io/NoWalletNoGasOnboarding/
 
