@@ -332,6 +332,7 @@ function App() {
         { poapTokenID ?
             <>
               <p style={{fontWeight :'bold', color: 'green'}}>Transaction Success!</p> 
+              <a style={{color: 'green'}} href={"https://rinkeby.etherscan.io/tx/"+`${proofOfTxn.hash}`}>Click to view transaction on etherscan</a>
               <p style={{color : 'white'}}>New Token ID: {poapTokenID.toNumber()}</p>
             </>
            :
@@ -352,7 +353,7 @@ function App() {
         <hr style={{color: 'white', width: '80%'}} />
         <h2>Paymaster Interaction</h2>
           <p className='info-text'>Gas fees are paid by a Paymaster contract in the relay system. This contract's balance needs to be maintained by the deployer. Sample function below.</p>
-          <p style={{marginBottom: '30px'}}>Current Balance of Paymaster is: {paymasterBalance} eth</p>
+          <p style={{marginBottom: '30px'}}>Current Balance of Rinkeby Paymaster is: {paymasterBalance} eth</p>
         <RefillPaymaster />
 
       </div>
