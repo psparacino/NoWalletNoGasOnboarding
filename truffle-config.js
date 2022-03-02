@@ -10,7 +10,7 @@ module.exports = {
       network_id: "*"
     },
     rinkeby: {
-      provider: () => new HDWalletProvider(process.env.REACT_APP_MNEMONIC, process.env.REACT_APP_INFURA_URL),
+      provider: () => new HDWalletProvider(process.env.REACT_APP_MNEMONIC, 'wss://eth-rinkeby.alchemyapi.io/v2/lUClO9NkAFshlkgvnVQD0IwrkYIRCHU_'),
       network_id: 4,       // Ropsten's id
       gas: 5500000,        // Ropsten has a lower block limit than mainnet
       confirmations: 2,    // # of confs to wait between deployments. (default: 0)
