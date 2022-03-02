@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/NoWalletNoGasOnboarding/static/css/main.d28a8e4e.chunk.css",
-    "main.js": "/NoWalletNoGasOnboarding/static/js/main.84722f41.chunk.js",
-    "runtime-main.js": "/NoWalletNoGasOnboarding/static/js/runtime-main.4d886c00.js",
-    "static/js/2.06cfbd57.chunk.js": "/NoWalletNoGasOnboarding/static/js/2.06cfbd57.chunk.js",
-    "static/js/3.ac7df166.chunk.js": "/NoWalletNoGasOnboarding/static/js/3.ac7df166.chunk.js",
+    "main.css": "/NoWalletNoGasOnboarding/static/css/main.f5df05fc.chunk.css",
+    "main.js": "/NoWalletNoGasOnboarding/static/js/main.f0df487a.chunk.js",
+    "runtime-main.js": "/NoWalletNoGasOnboarding/static/js/runtime-main.4db15e89.js",
+    "static/js/2.ceb823bc.chunk.js": "/NoWalletNoGasOnboarding/static/js/2.ceb823bc.chunk.js",
+    "static/js/3.dd187395.chunk.js": "/NoWalletNoGasOnboarding/static/js/3.dd187395.chunk.js",
     "index.html": "/NoWalletNoGasOnboarding/index.html",
-    "static/js/2.06cfbd57.chunk.js.LICENSE.txt": "/NoWalletNoGasOnboarding/static/js/2.06cfbd57.chunk.js.LICENSE.txt"
+    "static/js/2.ceb823bc.chunk.js.LICENSE.txt": "/NoWalletNoGasOnboarding/static/js/2.ceb823bc.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
-    "static/js/runtime-main.4d886c00.js",
-    "static/js/2.06cfbd57.chunk.js",
-    "static/css/main.d28a8e4e.chunk.css",
-    "static/js/main.84722f41.chunk.js"
+    "static/js/runtime-main.4db15e89.js",
+    "static/js/2.ceb823bc.chunk.js",
+    "static/css/main.f5df05fc.chunk.css",
+    "static/js/main.f0df487a.chunk.js"
   ]
 }
