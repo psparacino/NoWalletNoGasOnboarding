@@ -298,7 +298,7 @@ function App() {
           <h4>To Use:</h4>
             <p>1. Create a new ethereum address below (each address can only mint once)</p>
             <p>2. Enter address in input</p>
-            <p>3. Click Mint NFT to an NFT on the Rinkeby test network</p>
+            <p>3. Click Mint NFT to mint an NFT on the Rinkeby test network</p>
             <p style={{fontSize: '15px', paddingBottom: '15px'}}>Open the console to see the relay processes</p>
 
         </div>
