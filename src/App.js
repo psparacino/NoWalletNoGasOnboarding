@@ -17,19 +17,17 @@ import { RelayProvider } from '@opengsn/provider/dist/RelayProvider';
 
 import level1CompletionDeployed from './deployedContractAddresses/Level1Completion.json';
 
-import relayHubDeployed from './localGSNbuilds/RelayHub.json'
-
 import whitelistDeployed from './deployedContractAddresses/WhitelistPaymaster.json';
+
+import relayHubDeployed from './rinkebyBuilds/RelayHub.json';
+
 
 //style
 import './App.css';
 
 import { BeatLoader } from 'react-spinners';
 
-
 const HttpProvider = require( 'web3-providers-http')
-
-
 
 
 function App() {
@@ -43,7 +41,10 @@ function App() {
   const [poapTokenID, setPAOPTokenID] = useState(0);
   const [poapTokenURI, setPAOPTokenURI] = useState('');
   const [balanceUpdated, setBalanceUpdated] = useState(false);
+
+  //notifications
   const [loading, setLoading] = useState(false);
+  const [relayMessage, setRelayMessage] = useState('');
 
   //Paymaster
 
@@ -63,9 +64,6 @@ function App() {
   const [localHttpProvider, setLocalHttpProvider] = useState('')
 
 
-  const paymasterArtifact = require('./build/WhitelistPaymaster.json')
-
-
   //set provider and WhiteListPaymaster addresss
 
   useEffect(()=> {
@@ -80,12 +78,6 @@ function App() {
 
       async function initContract() {
 
-        //const networkId = await window.ethereum.request({method: 'net_version'})
-
-        //for local paymaster
-        //const paymasterAddress = require('./localGSNbuilds/Paymaster.json').address
-
-        //const whiteListPaymasterAddress = paymasterArtifact.networks[networkId].address;
         setWhitelistPMAddress(whitelistDeployed.address);
 
         const gsnConfig = {
@@ -98,7 +90,6 @@ function App() {
 
 
         let httpweb3provider = new HttpProvider("https://eth-rinkeby.alchemyapi.io/v2/lUClO9NkAFshlkgvnVQD0IwrkYIRCHU_")
-
         setLocalHttpProvider(httpweb3provider)
 
         const gsnProvider = await RelayProvider.newProvider({
@@ -112,14 +103,10 @@ function App() {
 
         //create one time account
         const uniqueOneTimeAccount = gsnProvider.newAccount()
-        setOneTimeAccount(uniqueOneTimeAccount)
-
-  
-
-        
+        setOneTimeAccount(uniqueOneTimeAccount)        
       }
 
-    },[/*paymasterArtifact.networks*/])
+    },[])
 
 
     //create Contract Instances
@@ -145,7 +132,6 @@ function App() {
 
         //let onetimeAccount connect to contract
         const ephemeralContract = Level1CompletionContract.connect(relayProvider.getSigner(oneTimeAccount.address))
-
         setLevel1CompletionContractEphemeral(ephemeralContract)
 
       }  
@@ -179,11 +165,12 @@ function App() {
 
   async function awardPOAP() {
     if (ethers.utils.isAddress(userSubmittedAddress)) {
-
+      setRelayMessage('Relay Sent. Waiting for response...')
       setErrorMessage('')
       Level1CompletionContractEphemeral.awardCertificate(userSubmittedAddress, 'https://random.imagecdn.app/500/150')
         .then((result) => {
           console.log(result, "award result") 
+          setRelayMessage('')
           setProofOfTxn(result)
           setLoading(true)
           relayProvider.waitForTransaction(result.hash)
@@ -194,7 +181,7 @@ function App() {
               setPAOPTokenURI(newTokenURI)
               setUserSubmittedAddress('')
               setLoading(false)
-              console.log(userSubmittedAddress, "userSubmittedAddress", newTokenID.toNumber(), "newTokenID", newTokenURI, "RELEVANT TXN RESULTS RESULTS")
+              console.log({"userSubmittedAddress" : userSubmittedAddress, "newTokenID" : newTokenID.toNumber(), "RELEVANT TXN RESULTS RESULTS" : newTokenURI})
     
             })
         })
@@ -211,9 +198,28 @@ function App() {
         })
 
     } else{
-        setErrorMessage('Please enter a valid address')
+        setErrorMessage('Please enter a valid ethereum address')
     }
     
+  }
+
+  const RandomWallet = () => {
+    const [randomAddress, setRandomAddress]= useState('');
+
+    function setRandom() {
+      const  newWallet = ethers.Wallet.createRandom()
+      setRandomAddress(newWallet.address);
+    }
+
+  
+    return(
+      <>
+        <button className="siteButton" onClick={setRandom}> Create random address:</button>
+        {randomAddress ? 
+          <p>{randomAddress}</p> :
+          null}
+      </>
+    )
   }
 
   //Paymaster Component
@@ -259,7 +265,7 @@ function App() {
   
     
     <div style={{width: '60%'}}>
-      <button onClick={deposit}  style={{fontSize: '30px', width: '60%'}} > Send to Paymaster</button>
+      <button onClick={deposit} className="siteButton" style={{fontSize: '30px', width: '70%'}}>Send to Paymaster</button>
       {amountMessage ?
       <p>{amountMessage}</p>
       : null}  
@@ -270,7 +276,7 @@ function App() {
       placeholder='enter amount to send to paymaster'
       onChange={(e) => setAmount(e.target.value)} 
       value={amount || ''}
-      style={{width: '70%', fontSize: '20px', marginTop: '10px', textAlign: 'center'}} />
+      style={{width: '80%', height: '40px', fontSize: '20px', marginTop: '30px', textAlign: 'center'}} />
       
        
 
@@ -284,43 +290,53 @@ function App() {
   
   return (
     <div className="App">
-      <header className="App-header"> 
-        <BeatLoader color={'gray'} loading={loading}size={50} />
-        {loading ? 
-        <>
-          <p>Waiting for transaction to mine...</p> 
-          <hr style={{color: 'white', width: '80%'}}/> 
-        </>
-              
-        : null }
-       
+      <div className="App-body"> 
+        <h2>Wallet and Gas Free Onboarding Demo</h2>
         <div className="info-text">
-          <p>refresh the page for repeat transactions</p>
-          <p>make sure you are connected to Rinkeby</p>
+          <p style={{fontSize: '17px'}}>This page demonstrates a method to facilitate web3 user onboarding by allowing users to interact with deployed contracts/mint an NFT without needing to pay gas or having their own wallet using a combination of OpenGsn, Alchemy, and ephemeral accounts.</p>
+          <hr />
+          <h4>To Use:</h4>
+            <p>1. Create a new ethereum address below (each address can only mint once)</p>
+            <p>2. Enter address in input</p>
+            <p>3. Click Mint NFT to an NFT on the Rinkeby test network</p>
+            <p style={{fontSize: '15px', paddingBottom: '15px'}}>Open the console to see the relay processes</p>
+
         </div>
+        <RandomWallet />
         
         <br />
-        <button className='txnbutton' style={{fontSize: '40px', width: '50%'}} onClick={awardPOAP}>Award Level 1 POAP</button> 
+        <button className='txnButton' style={{fontSize: '40px', width: '50%'}} onClick={awardPOAP}>Mint NFT</button> 
+        {relayMessage ? 
+        <p>{relayMessage}</p> :
+        null }
 
             <input 
               name="userAddress" 
               type="text" 
-              placeholder='enter learner address here'
+              placeholder='enter ethereum address here'
               onChange={(e) => setUserSubmittedAddress(e.target.value)} 
               value={userSubmittedAddress || ''}
-              style={{width: '60%', fontSize: '20px', marginTop: '50px', textAlign: 'center'}} />
+              style={{width: '65%', height: '40px', fontSize: '20px', marginTop: '30px', textAlign: 'center'}} />
 
          { proofOfTxn ?
-          <p style={{color : 'white', fontSize: '30px'}}>Proof Of Txn: {proofOfTxn.hash}</p> :
+          <p style={{color : 'white', fontSize: '25px'}}>Transaction Hash: {proofOfTxn.hash}</p> :
           null
         }
+        {loading ? 
+        <div style={{marginTop: '30px'}}>
+          <BeatLoader color={'gray'} loading={loading} size={50}/>
+          <p>Waiting for transaction to mine...</p> 
+        </div>         
+        : null }   
         
-
         { poapTokenID ?
-          <p style={{color : 'white'}}>New Token ID: {poapTokenID.toNumber()}</p> :
+            <>
+              <p style={{fontWeight :'bold', color: 'green'}}>Transaction Success!</p> 
+              <p style={{color : 'white'}}>New Token ID: {poapTokenID.toNumber()}</p>
+            </>
+           :
           null
         }
-
         { poapTokenURI ?
             <>
               <p style={{color : 'white'}}>Token Image:</p>
@@ -334,14 +350,12 @@ function App() {
         {errorMessage}
 
         <hr style={{color: 'white', width: '80%'}} />
-
         <h2>Paymaster Interaction</h2>
-
-        <p>Current Balance of Paymaster is: {paymasterBalance} eth</p>
-
+          <p className='info-text'>Gas fees are paid by a Paymaster contract in the relay system. This contract's balance needs to be maintained by the deployer. Sample function below.</p>
+          <p style={{marginBottom: '30px'}}>Current Balance of Paymaster is: {paymasterBalance} eth</p>
         <RefillPaymaster />
 
-      </header>
+      </div>
     </div>
   );
 }
