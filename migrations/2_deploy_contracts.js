@@ -11,9 +11,9 @@ module.exports = async function (deployer) {
 
   // deploy CTF
 
-  const forwarder = require('../src/localGSNbuilds/Forwarder.json').address
+  const forwarder = require('../src/rinkebyAddresses/Forwarder.json').address
 
-  console.log(forwarder, "forwarder")
+
 
 
 
@@ -76,7 +76,7 @@ module.exports = async function (deployer) {
   const relayHub = await RelayHub.at(relayHubAddress)
 
 
-  //inital deposit to paymaster
+  //inital deposit to fund the paymaster
   await relayHub.depositFor(paymaster.address, {from:"0xe4632110872c2213b6E0C5B7b6a88583124a15a0", value: 1e18.toString()})
   
   console.log(`1 ETH deposited to Paymaster(${WhitelistPaymaster.address})`)

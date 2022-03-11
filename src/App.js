@@ -19,7 +19,7 @@ import level1CompletionDeployed from './deployedContractAddresses/Level1Completi
 
 import whitelistDeployed from './deployedContractAddresses/WhitelistPaymaster.json';
 
-import relayHubDeployed from './rinkebyBuilds/RelayHub.json';
+import relayHubDeployed from './rinkebyAddresses/RelayHub.json';
 
 
 //style
@@ -78,6 +78,9 @@ function App() {
 
       async function initContract() {
 
+        // all addresses in rinkebyAddresses are contracts already deployed by OpenGSN. Just the addresses are needed.
+        // Whitelist Paymaster and Level1 are the contracts that will be deployed by us.
+
         setWhitelistPMAddress(whitelistDeployed.address);
 
         const gsnConfig = {
@@ -119,7 +122,7 @@ function App() {
 
       async function createContractObjects() {
 
-        //create new instance of relayHub for owner use
+        //create new instance of relayHub for owner use with regular signer. *NOT* one time signer
         
         const regularProvider =  new ethers.providers.AlchemyProvider('rinkeby', process.env.REACT_APP_ALCHEMY_API_KEY)
         const ownerWalletWithProvider = new ethers.Wallet(process.env.REACT_APP_PRIVATE_KEY, regularProvider);
