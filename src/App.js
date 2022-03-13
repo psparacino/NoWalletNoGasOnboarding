@@ -191,12 +191,9 @@ function App() {
 
         .catch((error)=> {
           setLoading(false)
-          console.log(error.data.message, "award error")
-          if ((error.message).includes("awarded")) {
-            setErrorMessage('learner has already been awarded this token')
-          } else {
-          setErrorMessage(error)
-          }
+          console.log(error, "award error")
+          setRelayMessage('')
+          setErrorMessage('This address has already minted a token (one token per adddress).')
           
         })
 
@@ -309,6 +306,7 @@ function App() {
         
         <br />
         <button className='txnButton' style={{fontSize: '40px', width: '50%'}} onClick={awardPOAP}>Mint NFT</button> 
+        {<p>{errorMessage}</p>}
         {relayMessage ? 
         <p>{relayMessage}</p> :
         null }
@@ -319,7 +317,7 @@ function App() {
               placeholder='enter ethereum address here'
               onChange={(e) => setUserSubmittedAddress(e.target.value)} 
               value={userSubmittedAddress || ''}
-              style={{width: '65%', height: '40px', fontSize: '20px', marginTop: '30px', textAlign: 'center'}} />
+              style={{width: '65%', height: '40px', fontSize: '20px', textAlign: 'center'}} />
 
          { proofOfTxn ?
           <p style={{color : 'white', fontSize: '25px'}}>Transaction Hash: {proofOfTxn.hash}</p> :
@@ -350,7 +348,7 @@ function App() {
         }
 
    
-        {errorMessage}
+        
 
         <hr style={{color: 'white', width: '80%'}} />
         <h2>Paymaster Interaction</h2>
